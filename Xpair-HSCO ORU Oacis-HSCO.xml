@@ -1,0 +1,7 @@
+
+   <transformation>
+      <xslt>
+         <fichier obligatoire="true">Xpair-HSCO ORU Oacis-HSCO perso.xsl</fichier>
+      </xslt>
+   </transformation>
+
