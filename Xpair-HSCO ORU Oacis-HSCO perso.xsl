@@ -19,7 +19,7 @@
       <!--                                                          XSL PERSO                                                        -->
       <!-- ************************************************************************************************************************* -->
       <!-- options, format de sortie -->
-      <xsl:strip-space elements="*"/>
+      <!--  <xsl:strip-space elements="*"/>
       <xsl:output omit-xml-declaration="yes" indent="yes" encoding="UTF-8" method="xml" version="1.0"/>
    
       <xsl:template match="/">
@@ -39,21 +39,21 @@
          </xsl:element>
     
       
-      <!-- Encoding Characters-->
+     
      
          <xsl:element name="MSH.2.1">
             <xsl:value-of select="/HL7/MSH/MSH.2.1"/>
          </xsl:element>
    
       
-      <!-- Sending Application-->
+      
     
          <xsl:element name="MSH.3.1">
             <xsl:value-of select="/HL7/MSH/MSH.3.1"/>
          </xsl:element>
    
       
-      <!-- Sending facility -->
+      
    
          <xsl:element name="MSH.4.1">
             <xsl:value-of select="'HSCO'"/>
@@ -372,7 +372,7 @@
             </xsl:element> 
          
          </xsl:element>
-      </xsl:template>
+      </xsl:template>-->
             
    </xsl:stylesheet>
 

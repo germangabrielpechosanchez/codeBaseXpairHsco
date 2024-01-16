@@ -41,7 +41,10 @@
       <xsl:variable name="persoDocType"/>
       <xsl:variable name="persoDocClassification"/>
       <xsl:variable name="persoPath"/>
-      <xsl:variable name="persoFilename"/>
+      
+      <xsl:variable name="persoFilename">
+      <xsl:value-of select="concat('xpair-', /HL7/MSH/MSH.7.1)"/>
+      </xsl:variable>
       <!-- ************************************************************************************************************************* -->
       <!--                                               Déclaration des variables                                                   -->
       <!-- ************************************************************************************************************************* -->
@@ -50,20 +53,17 @@
       <!-- ************************************************************************************************************************* -->
       <!--                                                       Principal                                                  -->
       <!-- ************************************************************************************************************************* -->
-      <!--   <xsl:template match="/">
+      <xsl:template match="/">
          <xsl:element name="MSG_LIST">
             <xsl:call-template name="fichier"/>
             <xsl:call-template name="fichierDeControle"/>
          </xsl:element>
-      </xsl:template>-->
-      
- 
-      
+      </xsl:template>
       <!-- ************************************************************************************************************************* -->
       <!--                                                       fichier                                                    -->
       <!-- ************************************************************************************************************************* -->
       <xsl:template name="fichier">
-         <xsl:for-each select="/HL7/OBX[OBX.11.1 &gt;= 130 and starts-with(OBX.5.1,'JVBER')]">
+         <xsl:for-each select="/HL7/OBR/OBX[starts-with(OBX.5.5,'JVBER')]">
             <xsl:element name="MSG_ELEMENT">
                <xsl:call-template name="fichier.type"/>
                <xsl:call-template name="fichier.perso"/>
@@ -125,7 +125,7 @@
                   <xsl:value-of select="$pdfEnCours"/>
                </xsl:when>
                <xsl:otherwise>
-                  <xsl:value-of select="./OBX.5.1/text()"/>
+                  <xsl:value-of select="./OBX.5.5/text()"/>
                </xsl:otherwise>
             </xsl:choose>
             <xsl:text disable-output-escaping="yes">]]&gt;</xsl:text>
@@ -192,11 +192,13 @@
                <xsl:call-template name="IndexInfo.fileCount"/>
                <xsl:call-template name="IndexInfo.mrn"/>
                <xsl:call-template name="IndexInfo.facility"/>
+               <xsl:call-template name="IndexInfo.visit"/>
                <xsl:call-template name="IndexInfo.docType"/>
                <xsl:call-template name="IndexInfo.docDate"/>
                <xsl:call-template name="IndexInfo.docClassification"/>
                <xsl:call-template name="IndexInfo.indexingAction"/>
                <xsl:call-template name="IndexInfo.externalSystemIds"/>
+               <xsl:call-template name="IndexInfo.manifestId"/>
             </xsl:element>
             <xsl:text disable-output-escaping="yes">]]&gt;</xsl:text>
          </xsl:element>
@@ -204,13 +206,26 @@
       <!--IndexInfo.fileCount-->
       <xsl:template name="IndexInfo.fileCount">
          <xsl:element name="fileCount">
-            <xsl:value-of select="count(/HL7/OBX[OBX.11.1 &gt;= 130 and starts-with(OBX.5.1,'JVBER')])"/>
+            <xsl:value-of select="count(//HL7/OBR)"/>
          </xsl:element>
       </xsl:template>
       <!--IndexInfo.mrn-->
       <xsl:template name="IndexInfo.mrn">
+         <xsl:variable name="HopitalEntity" select="/HL7/MSH/MSH.4.1"/>
          <xsl:element name="mrn">
-            <xsl:value-of select="/HL7/PID/PID.3.1/text()"/>
+            <xsl:variable name="HopitalSantaCabrini" select="'E'"/>
+            <xsl:variable name="HopitalMaRosemont" select="'I'"/>
+            <xsl:choose>
+               
+               <xsl:when test="$HopitalEntity = 'HMR'">  
+                  <xsl:value-of select="substring-after(/HL7/PID/PID.4.1[1]/text(),$HopitalMaRosemont)"/>
+               </xsl:when>
+  
+               <xsl:when test="$HopitalEntity = 'HSCO'">  
+                  <xsl:value-of select="substring-after(/HL7/PID/PID.4.1[1]/text(),$HopitalSantaCabrini)"/>
+               </xsl:when>
+  
+            </xsl:choose>
          </xsl:element>
       </xsl:template>
       <!--IndexInfo.facility-->
@@ -219,6 +234,12 @@
             <xsl:value-of select="/HL7/MSH/MSH.6.1/text()"/>
          </xsl:element>
       </xsl:template>
+      <!--IndexInfo.visit-->
+      <xsl:template name="IndexInfo.visit">
+         <xsl:element name="visit">
+            <xsl:value-of select="//PV1/PV1.19.1/text()"/>
+         </xsl:element>
+      </xsl:template> 
       <!--IndexInfo.docType-->
       <xsl:template name="IndexInfo.docType">
          <xsl:element name="docType">
@@ -228,7 +249,7 @@
       <!--IndexInfo.docDate-->
       <xsl:template name="IndexInfo.docDate">
          <xsl:element name="docDate">
-            <xsl:value-of select="util:formatDateTime(substring(/HL7/OBR[1]/OBR.14.1, 1, 8), 'CCYYMMDD', '[Y0001]/[M01]/[D01]', '')"/>
+            <xsl:value-of select="concat(substring(/HL7/MSH/MSH.7.1/text(),1,4),'/',substring(/HL7/MSH/MSH.7.1/text(),5,2),'/',substring(/HL7/MSH/MSH.7.1/text(),7,2))"/>
          </xsl:element>
       </xsl:template>
       <!--IndexInfo.docClassification-->
@@ -256,12 +277,20 @@
       </xsl:template>
       <!--externalSystemId.externalSystem-->
       <xsl:template name="externalSystemId.externalSystem">
-         <xsl:element name="externalSystem"/>
+         <xsl:element name="externalSystem">
+            <xsl:value-of select="'XPAIR'"/>
+         </xsl:element>
       </xsl:template>
       <!--externalSystemId.externalId-->
       <xsl:template name="externalSystemId.externalId">
          <xsl:element name="externalId">
-            <xsl:value-of select="''"/>
+            <xsl:value-of select="concat(/HL7/MSH/MSH.3.1/text(),'_',/HL7/MSH/MSH.7.1/text())"/>
+         </xsl:element>
+      </xsl:template>
+      <!--externalSystemId.manifestId-->
+      <xsl:template name="IndexInfo.manifestId">
+         <xsl:element name="manifestId">
+            <xsl:value-of select="concat(/HL7/MSH/MSH.3.1/text(),'_',/HL7/MSH/MSH.7.1/text())"/>
          </xsl:element>
       </xsl:template>
       <!--fichierDeControle.ordre-->
